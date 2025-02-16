@@ -28,24 +28,26 @@ void Encoder::readEncoders(Encoder::EncoderData &encoderData) {
     encoderData.reading.right = encoderRightReading;
     
     // Calculate RPM for left encoder
-    if (encoderLeftReading != 0) {
-        long deltaTime = readTime - lastReadTimeLeft;
-        if (deltaTime > 0) {
-            long deltaLeft = encoderLeftReading - encoderLeftLast;
-            lastReadTimeLeft = readTime;
-            encoderLeftLast = encoderLeftReading;
-            encoderData.rpm.left = (static_cast<double>(deltaLeft) * 60000.0) / (tpr * static_cast<double>(deltaTime));
-        }
+    long deltaTime = readTime - lastReadTimeLeft;     // Always compute deltaTime
+    long deltaLeft = encoderLeftReading - encoderLeftLast;  // Calculate change in counts
+
+    // Update timing and reading variables every cycle
+    lastReadTimeLeft = readTime;
+    encoderLeftLast = encoderLeftReading;
+
+    if (deltaTime > 0) {
+        encoderData.rpm.left = (static_cast<double>(deltaLeft) * 60000.0) / (tpr * static_cast<double>(deltaTime));
     }
     
     // Calculate RPM for right encoder
-    if (encoderRightReading != 0) {
-        long deltaTime = readTime - lastReadTimeRight;
-        if (deltaTime > 0) {
-            long deltaRight = encoderRightReading - encoderRightLast;
-            lastReadTimeRight = readTime;
-            encoderRightLast = encoderRightReading;
-            encoderData.rpm.right = (static_cast<double>(deltaRight) * 60000.0) / (tpr * static_cast<double>(deltaTime));
-        }
+    long deltaTimeRight = readTime - lastReadTimeRight;     
+    long deltaRight = encoderRightReading - encoderRightLast;  
+
+    // Update timing and reading variables every cycle
+    lastReadTimeRight = readTime;
+    encoderRightLast = encoderRightReading;
+
+    if (deltaTimeRight > 0) {
+        encoderData.rpm.right = (static_cast<double>(deltaRight) * 60000.0) / (tpr * static_cast<double>(deltaTimeRight));
     }
 }

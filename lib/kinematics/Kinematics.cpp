@@ -1,30 +1,3 @@
-/*
-  Copyright (c) 2016, Juan Jimeno
-  Source: http://research.ijcaonline.org/volume113/number3/pxc3901586.pdf
-  All rights reserved.
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are met:
-   Redistributions of source code must retain the above copyright notice,
-  this list of conditions and the following disclaimer.
-   Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-   Neither the name of  nor the names of its contributors may be used to
-  endorse or promote products derived from this software without specific
-  prior written permission.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-  CONTRACT, STRICT LIABILITY, OR TORTPPIPI (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.
-*/
-
 #include "Arduino.h"
 #include "Kinematics.h"
 
@@ -139,11 +112,20 @@ Kinematics::velocities Kinematics::getVelocities(float rpm1, float rpm2, float r
     vel.linear_y = 0;
 
   //convert average revolutions per minute to revolutions per second
-  average_rps_a = ((float)(-rpm1 + rpm2 - rpm3 + rpm4) / total_wheels_) / 60;
+  average_rps_a = -((float)(-rpm1 + rpm2 - rpm3 + rpm4) / total_wheels_) / 60;
   vel.angular_z = (average_rps_a * wheel_circumference_) / ((wheels_x_distance_ / 2) + (wheels_y_distance_ / 2)); //  rad/s
 
   return vel;
 }
+
+// Convention:
+// - Left motor is motor1
+// - Right motor is motor2
+// For differential drive, positive RPM:
+// - Left wheel forward = positive
+// - Right wheel forward = positive
+
+// Removed duplicate definition of getVelocities
 
 int Kinematics::getTotalWheels(base robot_base)
 {
@@ -163,3 +145,33 @@ int Kinematics::getTotalWheels(base robot_base)
     return 2;
   }
 }
+
+Kinematics::velocities Kinematics::getVelocitiesFromIMU(float acceleration_x, float acceleration_y, float gyro_z)
+{
+    Kinematics::velocities vel;
+
+    // Convert accelerometer data to linear velocities (m/s)
+    // Accelerometer data is in g's, multiply by 9.81 to get m/s^2
+    vel.linear_x = acceleration_x * 9.81;
+    vel.linear_y = acceleration_y * 9.81;
+
+    // Gyroscope data is already in rad/s from IMU class
+    vel.angular_z = gyro_z;
+
+    return vel;
+}
+
+void Kinematics::fuseVelocities(float alpha, velocities& vel1, velocities& vel2, velocities& fused) 
+{
+    // Constrain alpha between 0 and 1
+    float filtered_alpha = constrain(alpha, 0.0f, 1.0f);
+    
+    // Complementary filter:
+    // vel1 (typically encoder-based) weighted by (1-alpha)
+    // vel2 (typically IMU-based) weighted by alpha
+    fused.linear_x = (1.0f - filtered_alpha) * vel1.linear_x + filtered_alpha * vel2.linear_x;
+    fused.linear_y = (1.0f - filtered_alpha) * vel1.linear_y + filtered_alpha * vel2.linear_y;
+    fused.angular_z = (1.0f - filtered_alpha) * vel1.angular_z + filtered_alpha * vel2.angular_z;
+}
+
+

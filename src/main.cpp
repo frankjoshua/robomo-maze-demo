@@ -3,6 +3,7 @@
 #include "Kinematics.h"
 #include "Encoder.h"
 #include "Odometry.h"
+#include <IMU.h>
 
 // Define constants in meters
 const float wheelDiameter_m = 0.032;  // 32mm in meters
@@ -24,19 +25,11 @@ Kinematics kinematics(Kinematics::DIFFERENTIAL_DRIVE,
                      wheelsYDistance_m);
 Encoder encoder(wheelRadius_m, ticksPerRevolution);
 Odometry odometry;
-
-// Add state machine enum
-enum DriveState {
-    DRIVE_FORWARD,
-    TURN_LEFT,
-    COMPLETE_TURN,
-    RESET_STATE
-};
-
-DriveState currentState = DRIVE_FORWARD;
-const float targetDistance = 0.2; // meters
-const float turnAngle = PI/2; // 90 degrees in radians
-int sideCount = 0;
+IMU imu;
+float high_imu = 0;
+float high_odom = 0;
+Kinematics::velocities fusedVel;
+long lastLCDUpdate = 0;
 
 void setup() {
     // Initialize the motors
@@ -49,7 +42,13 @@ void setup() {
     lcd.gotoXY(0, 1);
     lcd.print(F("Ready"));
     delay(1000);
-    odometry.reset();
+
+    if (!imu.init()) {
+        lcd.clear();
+        lcd.print(F("IMU Failed"));
+        while(1);
+    }
+    imu.calibrateGyro();
 }
 
 void loop() {
@@ -57,7 +56,12 @@ void loop() {
     Encoder::EncoderData encoderData;
     encoder.readEncoders(encoderData);
 
-    // Calculate velocities from encoder readings
+    // Get IMU data
+    IMU::IMUData imuData;
+    imu.readIMU(imuData);
+    Kinematics::velocities imuVel = kinematics.getVelocitiesFromIMU(imuData.accelerometer.x, imuData.accelerometer.y, imuData.gyroscope.z);
+    
+    // Calculate velocities using both encoder and IMU data
     Kinematics::velocities vel = kinematics.getVelocities(
         encoderData.rpm.left,
         encoderData.rpm.right,
@@ -65,55 +69,34 @@ void loop() {
         0   // Only using 2 motors
     );
 
+
     // Update position
     Odometry::Position pos = odometry.calculatePosition(vel.linear_x, vel.angular_z);
-
-    // State machine for square movement
-    switch(currentState) {
-        case DRIVE_FORWARD:
-            motors.setSpeeds(100, 100);
-            if (pos.x >= targetDistance) {
-                motors.setSpeeds(0, 0);
-                currentState = TURN_LEFT;
-                odometry.reset();
-            }
-            break;
-
-        case TURN_LEFT:
-            motors.setSpeeds(-100, 100);
-            if (pos.theta >= turnAngle) {
-                motors.setSpeeds(0, 0);
-                currentState = COMPLETE_TURN;
-                odometry.reset();
-            }
-            break;
-
-        case COMPLETE_TURN:
-            sideCount++;
-            if (sideCount >= 4) {
-                currentState = RESET_STATE;
-                sideCount = 0;
-            } else {
-                currentState = DRIVE_FORWARD;
-            }
-            break;
-
-        case RESET_STATE:
-            motors.setSpeeds(0, 0);
-            delay(1000);
-            odometry.reset();
-            currentState = DRIVE_FORWARD;
-            break;
+    if(millis() > 4000){
+        motors.setSpeeds(0, 0);
+    } else {
+        motors.setSpeeds(200, -200);
+    }
+    
+    if(imuVel.angular_z > high_imu){
+        high_imu = imuVel.angular_z;
+    }
+    if(vel.angular_z > high_odom){
+        high_odom = vel.angular_z;
     }
 
-    // Display position on LCD
-    lcd.clear();
-    lcd.print(F("X:"));
-    lcd.print(pos.x);
-    lcd.gotoXY(0, 1);
-    lcd.print(F("Y:"));
-    lcd.print(pos.y);
-
+    kinematics.fuseVelocities(0.98, vel, imuVel, fusedVel);
+    
+    if(millis() - lastLCDUpdate > 500){
+        lastLCDUpdate = millis();
+        lcd.clear();
+        lcd.print(F("I:"));
+        lcd.print(imuVel.angular_z);
+        lcd.gotoXY(0, 19);
+        lcd.print(F("O:"));
+        lcd.print(fusedVel.angular_z);
+    }
+    
     // Delay before the next loop iteration
     delay(50);
 }
