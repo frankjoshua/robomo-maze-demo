@@ -27,7 +27,7 @@ public:
     void calibrateGyro();
     void calibrateAccel();
     void setGyroRange(int range);
-    void setAccelRange(uint8_t range);
+    void setAccelRange(int range);
 
 private:
     // Calibration offsets
