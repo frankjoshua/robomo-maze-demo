@@ -174,4 +174,40 @@ void Kinematics::fuseVelocities(float alpha, velocities& vel1, velocities& vel2,
     fused.angular_z = (1.0f - filtered_alpha) * vel1.angular_z + filtered_alpha * vel2.angular_z;
 }
 
+void Kinematics::fuseIMU(float acc_x, float acc_y, float acc_z,
+                        float gyro_x, float gyro_y, float gyro_z,
+                        float mag_x, float mag_y, float mag_z,
+                        velocities* vel)
+{    
+    // Print raw input values
+    // Serial.println("Raw IMU Values:");
+    // Serial.print("Acc (x,y,z): "); 
+    // Serial.print(acc_x); Serial.print(", ");
+    // Serial.print(acc_y); Serial.print(", ");
+    // Serial.println(acc_z);
+    
+    // Serial.print("Gyro (x,y,z): ");
+    // Serial.print(gyro_x); Serial.print(", ");
+    // Serial.print(gyro_y); Serial.print(", ");
+    // Serial.println(gyro_z);
+
+    // Convert and apply scaling
+    float acc_scale = 0.000061f * 9.81f;
+    vel->linear_x = acc_x * acc_scale;
+    vel->linear_y = acc_y * acc_scale;
+
+    float gyro_scale = 0.00875f * (PI / 180.0f);
+    vel->angular_z = gyro_z * gyro_scale;
+
+    // Print converted values
+    // Serial.println("Converted Values:");
+    // Serial.print("Linear (x,y): ");
+    // Serial.print(vel->linear_x); Serial.print(", ");
+    // Serial.println(vel->linear_y);
+    // Serial.print("Angular z: ");
+    // Serial.println(vel->angular_z);
+    // Serial.println("-------------------");
+}
+
+
 

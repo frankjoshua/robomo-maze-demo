@@ -10,6 +10,9 @@ IMU::IMU() {
     accelScale = 0.061f;          // Default to ±2g
     gyroOffset = {0.0, 0.0, 0.0}; 
     accelOffset = {0.0, 0.0, 0.0};
+    magScale = 0.00048828125f;  // Default LSM303D scale: ±4 gauss
+    magOffset = {0.0, 0.0, 0.0};
+    magCalibrated = false;
 }
 
 bool IMU::init() {
@@ -24,6 +27,7 @@ bool IMU::init() {
     
     setGyroRange(2000);
     setAccelRange(8);
+    setMagRange(4);  // Set default range to ±4 gauss
     
     initialized = true;
     return true;
@@ -34,6 +38,7 @@ void IMU::readIMU(IMUData& data) {
     
     readAccelerometer(data.accelerometer);
     readGyroscope(data.gyroscope);
+    readMagnetometer(data.magnetometer);
 }
 
 void IMU::readAccelerometer(Vector& accel) {
@@ -42,12 +47,12 @@ void IMU::readAccelerometer(Vector& accel) {
     accel.y = (imuWrapper.a.y - accelOffset.y) * accelScale;
     accel.z = (imuWrapper.a.z - accelOffset.z) * accelScale;
 
-    // Serial.print("Accel X: ");
-    // Serial.print(accel.x);
-    // Serial.print(", Accel Y: ");
-    // Serial.print(accel.y);
-    // Serial.print(", Accel Z: ");
-    // Serial.println(accel.z);
+    Serial.print("Accel X: ");
+    Serial.print(accel.x);
+    Serial.print(", Accel Y: ");
+    Serial.print(accel.y);
+    Serial.print(", Accel Z: ");
+    Serial.println(accel.z);
 
 }
 
@@ -74,6 +79,20 @@ void IMU::readGyroscope(Vector& gyro) {
     // Serial.println(imuWrapper.g.y);
 
     gyro.z = final_z;
+}
+
+void IMU::readMagnetometer(Vector& mag) {
+    imuWrapper.readMag();
+    mag.x = (imuWrapper.m.x - magOffset.x) * magScale;
+    mag.y = (imuWrapper.m.y - magOffset.y) * magScale;
+    mag.z = (imuWrapper.m.z - magOffset.z) * magScale;
+
+    // Serial.print("Mag X: ");
+    // Serial.print(mag.x);
+    // Serial.print(", Mag Y: ");
+    // Serial.print(mag.y);
+    // Serial.print(", Mag Z: ");
+    // Serial.println(mag.z);
 }
 
 void IMU::calibrateGyro() {
@@ -105,6 +124,31 @@ void IMU::calibrateAccel() {
     accelOffset.z = imuWrapper.a.z; // Offset for 1g (assuming ±2g range)
 }
 
+void IMU::calibrateMag() {
+    const int samples = 100;
+    Vector min = {32767, 32767, 32767};
+    Vector max = {-32768, -32768, -32768};
+    
+    // Collect samples to find min/max values
+    for(int i = 0; i < samples; i++) {
+        imuWrapper.readMag();
+        min.x = min(min.x, (float)imuWrapper.m.x);
+        min.y = min(min.y, (float)imuWrapper.m.y);
+        min.z = min(min.z, (float)imuWrapper.m.z);
+        max.x = max(max.x, (float)imuWrapper.m.x);
+        max.y = max(max.y, (float)imuWrapper.m.y);
+        max.z = max(max.z, (float)imuWrapper.m.z);
+        delay(10);
+    }
+    
+    // Calculate offsets (center point of min/max)
+    magOffset.x = (min.x + max.x) / 2.0f;
+    magOffset.y = (min.y + max.y) / 2.0f;
+    magOffset.z = (min.z + max.z) / 2.0f;
+    
+    magCalibrated = true;
+}
+
 void IMU::setGyroRange(int range) {
     // Scale factors for degrees per second
     switch(range) {
@@ -123,5 +167,16 @@ void IMU::setAccelRange(int range) {
         case 8:  accelScale = 0.244f/1000.0f; break;  // ±8g
         case 16: accelScale = 0.488f/1000.0f; break;  // ±16g
         default: accelScale = 0.061f/1000.0f; break;  // Default ±2g
+    }
+}
+
+void IMU::setMagRange(int range) {
+    // Scale factors for gauss
+    switch(range) {
+        case 2:  magScale = 0.000244140625f; break;  // ±2 gauss
+        case 4:  magScale = 0.00048828125f;  break;  // ±4 gauss
+        case 8:  magScale = 0.0009765625f;   break;  // ±8 gauss
+        case 12: magScale = 0.001464843750f;  break;  // ±12 gauss
+        default: magScale = 0.00048828125f;   break;  // Default ±4 gauss
     }
 }

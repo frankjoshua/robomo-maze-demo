@@ -29,6 +29,7 @@ IMU robotIMU;
 float high_imu = 0;
 float high_odom = 0;
 Kinematics::velocities fusedVel;
+Kinematics::velocities imuVel;
 long lastLCDUpdate = 0;
 
 void setup() {
@@ -60,7 +61,12 @@ void loop() {
     // Get IMU data
     IMU::IMUData imuData;
     robotIMU.readIMU(imuData);
-    Kinematics::velocities imuVel = kinematics.getVelocitiesFromIMU(imuData.accelerometer.x, imuData.accelerometer.y, imuData.gyroscope.z);
+    kinematics.fuseIMU(
+      imuData.accelerometer.x, imuData.accelerometer.y, imuData.accelerometer.z,
+      imuData.gyroscope.x, imuData.gyroscope.y, imuData.gyroscope.z,
+      0, 0, 0,
+      &imuVel);
+    // Kinematics::velocities imuVel = kinematics.getVelocitiesFromIMU(imuData.accelerometer.x, imuData.accelerometer.y, imuData.gyroscope.z);
     
     // Calculate velocities using both encoder and IMU data
     Kinematics::velocities vel = kinematics.getVelocities(
@@ -73,9 +79,6 @@ void loop() {
 
     // Update position
     Odometry::Position pos = odometry.calculatePosition(imuVel.linear_x, imuVel.angular_z);
-    float forward = cos(pos.theta) * imuData.accelerometer.y + sin(pos.theta) * imuData.accelerometer.z;
-    Serial.print("Forward: ");
-    Serial.println(forward);
 
     if(millis() > 4000){
         motors.setSpeeds(0, 0);

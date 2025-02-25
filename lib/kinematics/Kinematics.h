@@ -75,6 +75,10 @@ public:
   rpm getRPM(float linear_x, float linear_y, float angular_z);
   velocities getVelocitiesFromIMU(float aceleration_x, float aceleration_y, float gyro_z);
   void fuseVelocities(float alpha, velocities& vel1, velocities& vel2, velocities& fused);
+  void fuseIMU(float acc_x, float acc_y, float acc_z,
+               float gyro_x, float gyro_y, float gyro_z,
+               float mag_x, float mag_y, float mag_z,
+               velocities* vel);
 
 private:
   rpm calculateRPM(float linear_x, float linear_y, float angular_z);
