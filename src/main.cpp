@@ -14,6 +14,9 @@ const float wheelsXDistance_m = 0.098;  // 98mm in meters
 const float wheelsYDistance_m = 0.098;  // 98mm in meters
 const long ticksPerRevolution = 900;  // 12 counts per revolution * 75:1 gear ratio
 
+// Define loop period (100Hz = 10ms)
+const unsigned long LOOP_PERIOD_MS = 10;
+
 // Instantiate objects
 Zumo32U4Motors motors;
 Zumo32U4LCD lcd;
@@ -31,6 +34,32 @@ float high_odom = 0;
 Kinematics::velocities fusedVel;
 Kinematics::velocities imuVel;
 long lastLCDUpdate = 0;
+Zumo32U4ButtonA buttonA;
+
+
+void callibrate(){
+    // Stop motors during calibration
+    motors.setSpeeds(0, 0);
+    
+    // Display calibration message
+    lcd.clear();
+    lcd.print("Calibrating");
+    lcd.gotoXY(0, 1);
+    lcd.print("IMU...");
+    
+    // Run the calibration routine
+    robotIMU.calibrateAccel();
+    robotIMU.calibrateGyro();
+    robotIMU.calibrateMag();
+    
+    // Confirmation message
+    lcd.clear();
+    lcd.print("Calibration");
+    lcd.gotoXY(0, 1);
+    lcd.print("Complete!");
+    
+    delay(1000); // Show message for 1 second
+}
 
 void setup() {
     // Initialize the motors
@@ -49,24 +78,26 @@ void setup() {
         lcd.print(F("IMU Failed"));
         while(1);
     }
-    robotIMU.calibrateAccel();
-    robotIMU.calibrateGyro();
+    callibrate();
 }
 
 void loop() {
+    unsigned long start_time = millis();  // Get start time
+
     // Read encoder data
     Encoder::EncoderData encoderData;
     encoder.readEncoders(encoderData);
 
-    // Get IMU data
-    IMU::IMUData imuData;
-    robotIMU.readIMU(imuData);
-    kinematics.fuseIMU(
-      imuData.accelerometer.x, imuData.accelerometer.y, imuData.accelerometer.z,
-      imuData.gyroscope.x, imuData.gyroscope.y, imuData.gyroscope.z,
-      0, 0, 0,
-      &imuVel);
-    // Kinematics::velocities imuVel = kinematics.getVelocitiesFromIMU(imuData.accelerometer.x, imuData.accelerometer.y, imuData.gyroscope.z);
+    robotIMU.readSensorData();
+    // // Get IMU data
+    // IMU::IMUData imuData;
+    // robotIMU.readIMU(imuData);
+    // kinematics.fuseIMU(
+    //   imuData.accelerometer.x, imuData.accelerometer.y, imuData.accelerometer.z,
+    //   imuData.gyroscope.x, imuData.gyroscope.y, imuData.gyroscope.z,
+    //   0, 0, 0,
+    //   &imuVel);
+    // // Kinematics::velocities imuVel = kinematics.getVelocitiesFromIMU(imuData.accelerometer.x, imuData.accelerometer.y, imuData.gyroscope.z);
     
     // Calculate velocities using both encoder and IMU data
     Kinematics::velocities vel = kinematics.getVelocities(
@@ -79,6 +110,11 @@ void loop() {
 
     // Update position
     Odometry::Position pos = odometry.calculatePosition(imuVel.linear_x, imuVel.angular_z);
+
+    // Check if A button is pressed to trigger calibration
+    if (buttonA.getSingleDebouncedPress()) {
+        callibrate();
+    }
 
     if(millis() > 4000){
         motors.setSpeeds(0, 0);
@@ -95,16 +131,25 @@ void loop() {
 
     kinematics.fuseVelocities(0.98, vel, imuVel, fusedVel);
     
-    if(millis() - lastLCDUpdate > 500){
-        lastLCDUpdate = millis();
-        lcd.clear();
-        lcd.print(F("I:"));
-        lcd.print(imuVel.angular_z);
-        lcd.gotoXY(0, 19);
-        lcd.print(F("O:"));
-        lcd.print(fusedVel.angular_z);
-    }
+    // if(millis() - lastLCDUpdate > 500){
+    //     lastLCDUpdate = millis();
+    //     lcd.clear();
+    //     lcd.print(F("I:"));
+    //     lcd.print(imuVel.angular_z);
+    //     lcd.gotoXY(0, 19);
+    //     lcd.print(F("O:"));
+    //     lcd.print(fusedVel.angular_z);
+    // }
     
-    // Delay before the next loop iteration
-    delay(50);
+    unsigned long elapsed_time = millis() - start_time;  // Calculate execution time
+
+    // Only delay if we have time remaining
+    if (elapsed_time < LOOP_PERIOD_MS) {
+        // delay(LOOP_PERIOD_MS - elapsed_time);
+    } else {
+        // If we don't have time, print a warning
+        Serial.print(F("Loop time exceeded! "));
+        Serial.println(elapsed_time); 
+    }
 }
+
