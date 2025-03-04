@@ -71,7 +71,7 @@ public:
 
   Kinematics(base robot_base, int motor_max_rpm, float wheel_diameter, float wheels_x_distance, float wheels_y_distance);
   velocities getVelocities(float steering_angle, int rpm1, int rpm2);
-  velocities getVelocities(float rpm1, float rpm2, float rpm3, float rpm4);
+  velocities getVelocities(velocities &vel, float rpm1, float rpm2, float rpm3, float rpm4);
   rpm getRPM(float linear_x, float linear_y, float angular_z);
   velocities getVelocitiesFromIMU(float aceleration_x, float aceleration_y, float gyro_z);
   void fuseVelocities(float alpha, velocities& vel1, velocities& vel2, velocities& fused);

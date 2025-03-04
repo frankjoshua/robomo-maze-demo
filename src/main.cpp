@@ -4,6 +4,7 @@
 #include "Encoder.h"
 #include "Odometry.h"
 #include <IMU.h>
+#include <lineSensor.h>
 
 // Define constants in meters
 const float wheelDiameter_m = 0.032;  // 32mm in meters
@@ -29,13 +30,14 @@ Kinematics kinematics(Kinematics::DIFFERENTIAL_DRIVE,
 Encoder encoder(wheelRadius_m, ticksPerRevolution);
 Odometry odometry;
 IMU robotIMU;
-float high_imu = 0;
-float high_odom = 0;
 Kinematics::velocities fusedVel;
 Kinematics::velocities imuVel;
+Kinematics::velocities encoderVel;
+LineSensor lineSensor;
 long lastLCDUpdate = 0;
 Zumo32U4ButtonA buttonA;
 
+const char PROGMEM cal_msg[] = "Cal...";
 
 void callibrate(){
     // Stop motors during calibration
@@ -43,7 +45,7 @@ void callibrate(){
     
     // Display calibration message
     lcd.clear();
-    lcd.print("Calibrating");
+    lcd.print(cal_msg);
     lcd.gotoXY(0, 1);
     lcd.print("IMU...");
     
@@ -78,10 +80,16 @@ void setup() {
         lcd.print(F("IMU Failed"));
         while(1);
     }
-    callibrate();
+    // callibrate();
+    lineSensor.init();
+    lineSensor.calibrate();
 }
 
 void loop() {
+
+    float linePosition = lineSensor.getLinePosition();
+    Serial.println(linePosition);
+
     unsigned long start_time = millis();  // Get start time
 
     // Read encoder data
@@ -100,7 +108,8 @@ void loop() {
     // // Kinematics::velocities imuVel = kinematics.getVelocitiesFromIMU(imuData.accelerometer.x, imuData.accelerometer.y, imuData.gyroscope.z);
     
     // Calculate velocities using both encoder and IMU data
-    Kinematics::velocities vel = kinematics.getVelocities(
+    kinematics.getVelocities(
+        encoderVel,
         encoderData.rpm.left,
         encoderData.rpm.right,
         0,  // Only using 2 motors
@@ -109,7 +118,7 @@ void loop() {
 
 
     // Update position
-    Odometry::Position pos = odometry.calculatePosition(imuVel.linear_x, imuVel.angular_z);
+    Odometry::Position pos = odometry.calculatePosition(encoderVel.linear_x, encoderVel.angular_z);
 
     // Check if A button is pressed to trigger calibration
     if (buttonA.getSingleDebouncedPress()) {
@@ -121,15 +130,13 @@ void loop() {
     } else {
         motors.setSpeeds(200, -200);
     }
-    
-    if(imuVel.angular_z > high_imu){
-        high_imu = imuVel.angular_z;
-    }
-    if(vel.angular_z > high_odom){
-        high_odom = vel.angular_z;
-    }
 
-    kinematics.fuseVelocities(0.98, vel, imuVel, fusedVel);
+
+    kinematics.fuseVelocities(0.98, encoderVel, imuVel, fusedVel);
+
+    // Serial.print(pos.x);
+    // Serial.print(", ");
+    // Serial.println(pos.y);
     
     // if(millis() - lastLCDUpdate > 500){
     //     lastLCDUpdate = millis();

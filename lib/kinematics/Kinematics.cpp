@@ -93,9 +93,8 @@ Kinematics::velocities Kinematics::getVelocities(float steering_angle, int rpm1,
   return vel;
 }
 
-Kinematics::velocities Kinematics::getVelocities(float rpm1, float rpm2, float rpm3, float rpm4)
+Kinematics::velocities Kinematics::getVelocities(velocities &vel, float rpm1, float rpm2, float rpm3, float rpm4)
 {
-  Kinematics::velocities vel;
   float average_rps_x;
   float average_rps_y;
   float average_rps_a;

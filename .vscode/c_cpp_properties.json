@@ -10,7 +10,9 @@
             "includePath": [
                 "/home/josh/development/workspace/robomo-maze-demo/include",
                 "/home/josh/development/workspace/robomo-maze-demo/src",
+                "/home/josh/development/workspace/robomo-maze-demo/lib/lineSensor",
                 "/home/josh/development/workspace/robomo-maze-demo/lib/imu",
+                "/home/josh/development/workspace/robomo-maze-demo/lib/MadgwickAHRS",
                 "/home/josh/development/workspace/robomo-maze-demo/lib/odometry",
                 "/home/josh/development/workspace/robomo-maze-demo/lib/kinematics",
                 "/home/josh/development/workspace/robomo-maze-demo/lib/encoder",
@@ -24,7 +26,6 @@
                 "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/FastGPIO",
                 "/home/josh/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "/home/josh/.platformio/packages/framework-arduino-avr/variants/leonardo",
-                "/home/josh/development/workspace/robomo-maze-demo/lib/MadgwickAHRS",
                 "/home/josh/development/workspace/robomo-maze-demo/lib/motor",
                 "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/PololuMenu/src",
                 "/home/josh/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
@@ -38,7 +39,9 @@
                 "path": [
                     "/home/josh/development/workspace/robomo-maze-demo/include",
                     "/home/josh/development/workspace/robomo-maze-demo/src",
+                    "/home/josh/development/workspace/robomo-maze-demo/lib/lineSensor",
                     "/home/josh/development/workspace/robomo-maze-demo/lib/imu",
+                    "/home/josh/development/workspace/robomo-maze-demo/lib/MadgwickAHRS",
                     "/home/josh/development/workspace/robomo-maze-demo/lib/odometry",
                     "/home/josh/development/workspace/robomo-maze-demo/lib/kinematics",
                     "/home/josh/development/workspace/robomo-maze-demo/lib/encoder",
@@ -52,7 +55,6 @@
                     "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/FastGPIO",
                     "/home/josh/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "/home/josh/.platformio/packages/framework-arduino-avr/variants/leonardo",
-                    "/home/josh/development/workspace/robomo-maze-demo/lib/MadgwickAHRS",
                     "/home/josh/development/workspace/robomo-maze-demo/lib/motor",
                     "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/PololuMenu/src",
                     "/home/josh/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
@@ -65,6 +67,7 @@
             "defines": [
                 "PLATFORMIO=60117",
                 "ARDUINO_AVR_A_STAR_32U4",
+                "DISABLE_DEBUG",
                 "F_CPU=16000000L",
                 "ARDUINO_ARCH_AVR",
                 "ARDUINO=10808",
