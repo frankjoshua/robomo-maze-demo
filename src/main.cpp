@@ -5,6 +5,7 @@
 #include "Odometry.h"
 #include <IMU.h>
 #include <lineSensor.h>
+#include <Map.h>
 
 // Define constants in meters
 const float wheelDiameter_m = 0.032;  // 32mm in meters
@@ -15,12 +16,16 @@ const float wheelsXDistance_m = 0.098;  // 98mm in meters
 const float wheelsYDistance_m = 0.098;  // 98mm in meters
 const long ticksPerRevolution = 900;  // 12 counts per revolution * 75:1 gear ratio
 
+const int mapWidth = 200;
+const int mapHeight = 200;
+const float cellSize = 0.1;
+
 // Define loop period (100Hz = 10ms)
 const unsigned long LOOP_PERIOD_MS = 10;
 
 // Instantiate objects
 Zumo32U4Motors motors;
-Zumo32U4LCD lcd;
+// Zumo32U4LCD lcd;
 Zumo32U4Encoders encoders;
 Kinematics kinematics(Kinematics::DIFFERENTIAL_DRIVE, 
                      motorMaxRPM, 
@@ -34,20 +39,20 @@ Kinematics::velocities fusedVel;
 Kinematics::velocities imuVel;
 Kinematics::velocities encoderVel;
 LineSensor lineSensor;
+Map mapInstance;
 long lastLCDUpdate = 0;
-Zumo32U4ButtonA buttonA;
+// Zumo32U4ButtonA buttonA;
 
-const char PROGMEM cal_msg[] = "Cal...";
 
 void callibrate(){
     // Stop motors during calibration
     motors.setSpeeds(0, 0);
     
     // Display calibration message
-    lcd.clear();
-    lcd.print(cal_msg);
-    lcd.gotoXY(0, 1);
-    lcd.print("IMU...");
+    // lcd.clear();
+    // lcd.print(F("Cal..."));
+    // lcd.gotoXY(0, 1);
+    // lcd.print(F("IMU..."));
     
     // Run the calibration routine
     robotIMU.calibrateAccel();
@@ -55,10 +60,10 @@ void callibrate(){
     robotIMU.calibrateMag();
     
     // Confirmation message
-    lcd.clear();
-    lcd.print("Calibration");
-    lcd.gotoXY(0, 1);
-    lcd.print("Complete!");
+    // lcd.clear();
+    // lcd.print(F("Calibration"));
+    // lcd.gotoXY(0, 1);
+    // lcd.print(F("Complete!"));
     
     delay(1000); // Show message for 1 second
 }
@@ -68,29 +73,28 @@ void setup() {
     motors.setSpeeds(0, 0);
 
     // Initialize the LCD
-    lcd.init();
-    lcd.clear();
-    lcd.print(F("Hello"));
-    lcd.gotoXY(0, 1);
-    lcd.print(F("Ready"));
-    delay(1000);
+    // lcd.init();
+    // lcd.clear();
+    // lcd.print(F("Hello"));
+    // lcd.gotoXY(0, 1);
+    // lcd.print(F("Ready"));
+    // delay(1000);
 
     if (!robotIMU.init()) {
-        lcd.clear();
-        lcd.print(F("IMU Failed"));
+        // lcd.clear();
+        // lcd.print(F("IMU Failed"));
         while(1);
     }
     // callibrate();
     lineSensor.init();
     lineSensor.calibrate();
+    mapInstance.init(mapWidth, mapHeight);
 }
 
 void loop() {
 
     float linePosition = lineSensor.getLinePosition();
-    Serial.println(linePosition);
-
-    unsigned long start_time = millis();  // Get start time
+    
 
     // Read encoder data
     Encoder::EncoderData encoderData;
@@ -121,9 +125,9 @@ void loop() {
     Odometry::Position pos = odometry.calculatePosition(encoderVel.linear_x, encoderVel.angular_z);
 
     // Check if A button is pressed to trigger calibration
-    if (buttonA.getSingleDebouncedPress()) {
-        callibrate();
-    }
+    // if (buttonA.getSingleDebouncedPress()) {
+    //     callibrate();
+    // }
 
     if(millis() > 4000){
         motors.setSpeeds(0, 0);
@@ -138,25 +142,10 @@ void loop() {
     // Serial.print(", ");
     // Serial.println(pos.y);
     
-    // if(millis() - lastLCDUpdate > 500){
-    //     lastLCDUpdate = millis();
-    //     lcd.clear();
-    //     lcd.print(F("I:"));
-    //     lcd.print(imuVel.angular_z);
-    //     lcd.gotoXY(0, 19);
-    //     lcd.print(F("O:"));
-    //     lcd.print(fusedVel.angular_z);
-    // }
-    
-    unsigned long elapsed_time = millis() - start_time;  // Calculate execution time
-
-    // Only delay if we have time remaining
-    if (elapsed_time < LOOP_PERIOD_MS) {
-        // delay(LOOP_PERIOD_MS - elapsed_time);
-    } else {
-        // If we don't have time, print a warning
-        Serial.print(F("Loop time exceeded! "));
-        Serial.println(elapsed_time); 
+    if(millis() - lastLCDUpdate > 500){
+        lastLCDUpdate = millis();
+        Serial.println(mapInstance.get(0, 0));
     }
+
 }
 

@@ -46,7 +46,6 @@ void IMU::calibrateGyro() {
     gyroOffset.x = sum.x / samples;
     gyroOffset.y = sum.y / samples;
     gyroOffset.z = sum.z / samples;
-    printf("Gyro offset: %f, %f, %f\n", gyroOffset.x, gyroOffset.y, gyroOffset.z);
 }
 
 void IMU::calibrateAccel() {
@@ -64,8 +63,6 @@ void IMU::calibrateAccel() {
     accelOffset.x = sum.x / samples;
     accelOffset.y = sum.y / samples;
     accelOffset.z = sum.z / samples;
-
-    printf("Accel offset: %f, %f, %f\n", accelOffset.x, accelOffset.y, accelOffset.z);
 }
 
 void IMU::calibrateMag() {
@@ -89,8 +86,6 @@ void IMU::calibrateMag() {
     magOffset.x = (min.x + max.x) / 2.0f;
     magOffset.y = (min.y + max.y) / 2.0f;
     magOffset.z = (min.z + max.z) / 2.0f;
-
-    printf("Mag offset: %f, %f, %f\n", magOffset.x, magOffset.y, magOffset.z);
 }
 
 static unsigned long lastTime = 0;

@@ -37,7 +37,7 @@ public:
 private:
     Zumo32U4LineSensors sensors;
     unsigned int sensorValues[5];
-    const uint16_t LINE_THRESHOLD = 500;  // Threshold for detecting line (calibrated value)
+    const uint8_t LINE_THRESHOLD = 500;  // Threshold for detecting line (calibrated value)
 };
 
 #endif // LINE_SENSOR_H
