@@ -1,60 +1,14 @@
 #include "Motor.h"
 
-Motor::Motor() : 
-    linearErrorSum(0.0f),
-    angularErrorSum(0.0f),
-    lastLinearError(0.0f),
-    lastAngularError(0.0f),
-    lastUpdateTime(0)
+Motor::Motor() 
 {
-    // Default PID gains
-    linearPID = {1.0f, 0.1f, 0.05f};   // Kp, Ki, Kd
-    angularPID = {1.0f, 0.1f, 0.05f};  // Kp, Ki, Kd
+
 }
 
 void Motor::init() {
     motors.setSpeeds(0, 0);
-    lastUpdateTime = millis();
 }
 
-void Motor::setLinearPIDGains(float kp, float ki, float kd) {
-    linearPID = {kp, ki, kd};
-}
-
-void Motor::setAngularPIDGains(float kp, float ki, float kd) {
-    angularPID = {kp, ki, kd};
-}
-
-void Motor::updateVelocities(const VelocityCommand& current, const VelocityCommand& desired) {
-    unsigned long currentTime = millis();
-    float dt = (currentTime - lastUpdateTime) / 1000.0f; // Convert to seconds
-    lastUpdateTime = currentTime;
-
-    // Calculate errors
-    float linearError = desired.linear_x - current.linear_x;
-    float angularError = desired.angular_z - current.angular_z;
-
-    // Update PID controllers
-    float linearOutput = updatePID(linearError, linearErrorSum, lastLinearError, linearPID, dt);
-    float angularOutput = updatePID(angularError, angularErrorSum, lastAngularError, angularPID, dt);
-
-    // Calculate and apply motor speeds
-    MotorSpeeds speeds;
-    calculateMotorSpeeds(linearOutput, angularOutput, speeds);
-    motors.setSpeeds(speeds.left, speeds.right);
-}
-
-float Motor::updatePID(float error, float& errorSum, float& lastError, const PIDGains& gains, float dt) {
-    // Integrate error
-    errorSum += error * dt;
-    
-    // Calculate derivative
-    float derivative = (error - lastError) / dt;
-    lastError = error;
-    
-    // PID output
-    return gains.kp * error + gains.ki * errorSum + gains.kd * derivative;
-}
 
 void Motor::calculateMotorSpeeds(float linearOutput, float angularOutput, MotorSpeeds& speeds) {
     // Convert PID outputs to motor speeds
@@ -69,10 +23,27 @@ void Motor::calculateMotorSpeeds(float linearOutput, float angularOutput, MotorS
     speeds.right = static_cast<int16_t>(rightSpeed);
 }
 
-Motor::MotorSpeeds Motor::getMotorSpeeds() const {
-    // Return current motor speeds
-    MotorSpeeds speeds;
-    // Note: Zumo32U4Motors doesn't provide a way to read current speeds
-    // This would need to be tracked separately if needed
-    return speeds;
+void Motor::updateVelocities(const VelocityCommand& current, const VelocityCommand& desired) {
+    // Calculate errors
+    float linearError = desired.linear_x - current.linear_x;
+    float angularError = desired.angular_z - current.angular_z;
+    
+    // Simple proportional control
+    // You might want to tune these constants based on your robot's performance
+    const float KP_LINEAR = 0.1;
+    const float KP_ANGULAR = 0.1;
+    
+    // Calculate outputs
+    float linearOutput = KP_LINEAR * linearError;
+    float angularOutput = KP_ANGULAR * angularError;
+    
+    // Limit the outputs to maximum values
+    linearOutput = constrain(linearOutput, -MAX_LINEAR, MAX_LINEAR);
+    angularOutput = constrain(angularOutput, -MAX_ANGULAR, MAX_ANGULAR);
+    
+    // Convert PID outputs to motor speeds
+    calculateMotorSpeeds(linearOutput, angularOutput, speeds);
+    
+    // Apply speeds to motors
+    motors.setSpeeds(speeds.left, speeds.right);
 }
