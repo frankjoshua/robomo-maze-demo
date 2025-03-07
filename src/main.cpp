@@ -75,7 +75,7 @@ void callibrate(){
 }
 
 void setup() {
-    motorGoalVel.linear_x = 0.25;
+    motorGoalVel.linear_x = 0.1;
     motorGoalVel.angular_z = 0;
     // Initialize the LCD
     // lcd.init();
@@ -130,14 +130,14 @@ void loop() {
     Odometry::Position pos = odometry.calculatePosition(fusedVel.linear_x, fusedVel.angular_z);
     motorCurrentVel.linear_x = fusedVel.linear_x;
     motorCurrentVel.angular_z = fusedVel.angular_z;
-    Serial.print("Motor Vel: ");
-    Serial.print(motorCurrentVel.linear_x);
-    Serial.print(", ");
-    Serial.println(motorCurrentVel.angular_z);
-    Serial.print("Motor Goal Vel: ");
-    Serial.print(motorGoalVel.linear_x);
-    Serial.print(", ");
-    Serial.println(motorGoalVel.angular_z);
+    // Serial.print("Motor Vel: ");
+    // Serial.print(motorCurrentVel.linear_x);
+    // Serial.print(", ");
+    // Serial.println(motorCurrentVel.angular_z);
+    // Serial.print("Motor Goal Vel: ");
+    // Serial.print(motorGoalVel.linear_x);
+    // Serial.print(", ");
+    // Serial.println(motorGoalVel.angular_z);
     
     lineSensor.readRaw(lineValues);
     // convert pos to map location
@@ -149,9 +149,18 @@ void loop() {
         mapInstance.set(x, y, 0);
     }
     
-    if(millis() - lastLCDUpdate > 500){
+    motors.updateVelocities(motorCurrentVel, motorGoalVel);
+    if(millis() - lastLCDUpdate > 100){
         lastLCDUpdate = millis();
-        motors.updateVelocities(motorCurrentVel, motorGoalVel);
+        
+        // Serial.print("Motor current vel: ");
+        // Serial.print(motorCurrentVel.linear_x);
+        // Serial.print(", ");
+        // Serial.println(motorCurrentVel.angular_z);
+        // Serial.print("Motor goal vel: ");
+        // Serial.print(motorGoalVel.linear_x);
+        // Serial.print(", ");
+        // Serial.println(motorGoalVel.angular_z);
         // Serial.print(x);
         // Serial.print(", ");
         // Serial.print(y);

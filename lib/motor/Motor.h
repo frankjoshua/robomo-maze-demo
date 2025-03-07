@@ -29,8 +29,6 @@ private:
     
     // Maximum values
     const int16_t MAX_SPEED = 400;    // Maximum motor speed
-    const float MAX_LINEAR = 0.5;      // m/s
-    const float MAX_ANGULAR = PI;      // rad/s
     
     // Helper functions
     void calculateMotorSpeeds(float linearOutput, float angularOutput, MotorSpeeds& speeds);
