@@ -7,6 +7,7 @@
 #include <lineSensor.h>
 #include <Map.h>
 #include <Motor.h>
+#include <LocalPlanner.h>
 
 // Define constants in meters
 const float wheelDiameter_m = 0.032;  // 32mm in meters
@@ -42,11 +43,16 @@ Kinematics::velocities fusedVel;
 Kinematics::velocities imuVel;
 Kinematics::velocities encoderVel;
 LineSensor lineSensor;
+LineSensor::SensorValues lineValues;
 Motor::VelocityCommand motorGoalVel;
 Motor::VelocityCommand motorCurrentVel;
 Map mapInstance;
+LocalPlanner localPlanner(0.1,0.1);
+LocalPlanner::Pose currentPose;
+LocalPlanner::Pose goalPose;
+LocalPlanner::VelocityCommand localPlannerVel;
 long lastLCDUpdate = 0;
-LineSensor::SensorValues lineValues;
+
 // Zumo32U4ButtonA buttonA;
 
 
@@ -75,8 +81,10 @@ void callibrate(){
 }
 
 void setup() {
-    motorGoalVel.linear_x = 0.1;
-    motorGoalVel.angular_z = 0;
+    // motorGoalVel.linear_x = 0.1;
+    // motorGoalVel.angular_z = 0;
+    goalPose.x = 0.05;
+    goalPose.y = 0.05;
     // Initialize the LCD
     // lcd.init();
     // lcd.clear();
@@ -148,6 +156,13 @@ void loop() {
     } else {
         mapInstance.set(x, y, 0);
     }
+
+    currentPose.x = pos.x;
+    currentPose.y = pos.y;
+    currentPose.theta = pos.theta;
+    localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
+    motorGoalVel.linear_x = localPlannerVel.linear;
+    motorGoalVel.angular_z = localPlannerVel.angular;
     
     motors.updateVelocities(motorCurrentVel, motorGoalVel);
     if(millis() - lastLCDUpdate > 100){

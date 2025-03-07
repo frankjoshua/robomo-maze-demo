@@ -28,23 +28,23 @@ void Motor::updateVelocities(const VelocityCommand& current, const VelocityComma
     // Calculate errors
     float linearError = desired.linear_x - current.linear_x;
     float angularError = desired.angular_z - current.angular_z;
-    Serial.print("Linear Error: ");
-    Serial.print(linearError);
-    Serial.print(", Angular Error: ");
-    Serial.println(angularError);
+    // Serial.print("Linear Error: ");
+    // Serial.print(linearError);
+    // Serial.print(", Angular Error: ");
+    // Serial.println(angularError);
     
     // Simple proportional control
     // You might want to tune these constants based on your robot's performance
     const float KP_LINEAR = 0.1;
-    const float KP_ANGULAR = 0.05;
+    const float KP_ANGULAR = 0.025;
     
     // Calculate outputs
     float linearOutput = KP_LINEAR * linearError;
     float angularOutput = KP_ANGULAR * angularError;
-    Serial.print("Linear Output: ");
-    Serial.print(linearOutput);
-    Serial.print(", Angular Output: ");
-    Serial.println(angularOutput);
+    // Serial.print("Linear Output: ");
+    // Serial.print(linearOutput);
+    // Serial.print(", Angular Output: ");
+    // Serial.println(angularOutput);
     
     
     // Convert PID outputs to motor speeds
@@ -52,8 +52,8 @@ void Motor::updateVelocities(const VelocityCommand& current, const VelocityComma
     
     // Apply speeds to motors
     motors.setSpeeds(speeds.left, speeds.right);
-    Serial.print("Left Speed: ");
-    Serial.print(speeds.left);
-    Serial.print(", Right Speed: ");
-    Serial.println(speeds.right);
+    // Serial.print("Left Speed: ");
+    // Serial.print(speeds.left);
+    // Serial.print(", Right Speed: ");
+    // Serial.println(speeds.right);
 }
