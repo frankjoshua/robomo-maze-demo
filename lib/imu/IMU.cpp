@@ -15,7 +15,6 @@ IMU::IMU() {
 }
 
 bool IMU::init() {
-    Serial.begin(115200);
     Wire.setClock(400000);
     Wire.begin();
     if (!imuWrapper.init()) {

@@ -19,11 +19,11 @@ const float wheelsXDistance_m = 0.098;  // 98mm in meters
 const float wheelsYDistance_m = 0.098;  // 98mm in meters
 const long ticksPerRevolution = 900;  // 12 counts per revolution * 75:1 gear ratio
 
-const int mapWidth = 200;
-const int mapHeight = 200;
-const int startX = 100;
-const int startY = 100;
-const float cellSize = 0.01;
+const int mapWidth = 50;
+const int mapHeight = 50;
+const int startX = mapWidth / 2;
+const int startY = mapHeight / 2;
+const float cellSize = 0.04;
 
 // Define loop period (100Hz = 10ms)
 const unsigned long LOOP_PERIOD_MS = 10;
@@ -49,7 +49,7 @@ LineSensor::SensorValues lineValues;
 Motor::VelocityCommand motorGoalVel;
 Motor::VelocityCommand motorCurrentVel;
 Map mapInstance;
-LocalPlanner localPlanner(0.2, 1.0, 0.025);
+LocalPlanner localPlanner(0.2, 1.5, 0.025);
 LocalPlanner::Pose currentPose;
 LocalPlanner::Pose goalPose;
 GlobalPlanner globalPlanner;
@@ -58,7 +58,7 @@ GlobalPlanner globalPlanner;
 LocalPlanner::VelocityCommand localPlannerVel;
 long lastLCDUpdate = 0;
 
-// Zumo32U4ButtonA buttonA;
+Zumo32U4ButtonA buttonA;
 
 
 void callibrate(){
@@ -86,6 +86,8 @@ void callibrate(){
 }
 
 void setup() {
+    Serial.begin(115200);
+    Serial.println("Starting...");
     // motorGoalVel.linear_x = 0.1;
     // motorGoalVel.angular_z = 0;
     goalPose.x = 0.0;
@@ -96,16 +98,18 @@ void setup() {
     globalPlanner.addWaypoint({distance, distance, 0});
     globalPlanner.addWaypoint({0.0, distance, 0});
     globalPlanner.addWaypoint({0.0, 0.0, 0});
-    globalPlanner.addWaypoint({distance, 0.0, 0});
-    globalPlanner.addWaypoint({distance, distance, 0});
-    globalPlanner.addWaypoint({0.0, distance, 0});
-    globalPlanner.addWaypoint({0.0, 0.0, 0});
-    globalPlanner.addWaypoint({distance, 0.0, 0});
-    globalPlanner.addWaypoint({distance, distance, 0});
-    globalPlanner.addWaypoint({0.0, distance, 0});
-    globalPlanner.addWaypoint({0.0, 0.0, 0});
+    // globalPlanner.addWaypoint({distance, 0.0, 0});
+    // globalPlanner.addWaypoint({distance, distance, 0});
+    // globalPlanner.addWaypoint({0.0, distance, 0});
+    // globalPlanner.addWaypoint({0.0, 0.0, 0});
+    // globalPlanner.addWaypoint({distance, 0.0, 0});
+    // globalPlanner.addWaypoint({distance, distance, 0});
+    // globalPlanner.addWaypoint({0.0, distance, 0});
+    // globalPlanner.addWaypoint({0.0, 0.0, 0});
+    // globalPlanner.planPath(mapInstance, {0.0, 0.0, 0}, {distance, 0.0, 0});
+
     // Initialize the LCD
-    // lcd.init();
+    lcd.init();
     // lcd.clear();
     // lcd.print(F("Hello"));
     // lcd.gotoXY(0, 1);
@@ -115,15 +119,26 @@ void setup() {
     if (!robotIMU.init()) {
         // lcd.clear();
         // lcd.print(F("IMU Failed"));
+        Serial.println("IMU Failed");
         while(1);
     }
     // callibrate();
     lineSensor.init();
     lineSensor.calibrate();
     mapInstance.init(mapWidth, mapHeight);
+    // delay(3000);
+
+    // // create diagonal line
+    // for (int i = 0; i < mapWidth; i++) {
+    //     mapInstance.set(i, i, 1);
+    // }
+
+
+    
 }
 
 void loop() {
+    // Serial.println("Looping");
     // Read encoder data
     Encoder::EncoderData encoderData;
     encoder.readEncoders(encoderData);
@@ -183,13 +198,32 @@ void loop() {
     currentPose.theta = pos.theta;
     bool atGoal = localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
     if(atGoal){
+                // Serial print the map
+                // Serial.println("Map:");
+                // for (int y = 0; y < 200; y++) {
+                //     for (int x = 0; x < 200; x++) {
+                //         Serial.print(mapInstance.get(x, y));
+                //     }
+                //     Serial.println();
+                // }
         bool moreWaypoints = globalPlanner.getNextWaypoint(goalPose);
         if(!moreWaypoints){
             Serial.println("Finished");
             motors.stop();
-            while (1){
-            
-            }            
+            while (1)
+            {
+                if(buttonA.getSingleDebouncedPress()){
+        
+                Serial.println("Map:");
+                for (int y = 0; y < mapHeight; y++) {
+                    for (int x = 0; x < mapWidth; x++) {
+                        Serial.print(mapInstance.get(x, y));
+                    }
+                    Serial.println();
+                }
+            }
+                delay(10);
+            }        
         }
     }
     motorGoalVel.linear_x = localPlannerVel.linear;

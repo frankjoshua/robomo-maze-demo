@@ -22,6 +22,10 @@ void Encoder::readEncoders(Encoder::EncoderData &encoderData) {
     // Get encoder counts from Zumo
     long encoderLeftReading = zumoEncoders.getCountsLeft();
     long encoderRightReading = zumoEncoders.getCountsRight();
+    // Serial.print("Left: ");
+    // Serial.print(encoderLeftReading);
+    // Serial.print(" Right: ");
+    // Serial.println(encoderRightReading);
     
     // Store raw readings
     encoderData.reading.left = encoderLeftReading;
@@ -30,6 +34,13 @@ void Encoder::readEncoders(Encoder::EncoderData &encoderData) {
     // Calculate RPM for left encoder
     long deltaTime = readTime - lastReadTimeLeft;     // Always compute deltaTime
     long deltaLeft = encoderLeftReading - encoderLeftLast;  // Calculate change in counts
+
+    // Handle overflow for left encoder
+    if (deltaLeft < -32000) {
+        deltaLeft += 65536;
+    } else if (deltaLeft > 32000) {
+        deltaLeft -= 65536;
+    }
 
     // Update timing and reading variables every cycle
     lastReadTimeLeft = readTime;
@@ -42,6 +53,13 @@ void Encoder::readEncoders(Encoder::EncoderData &encoderData) {
     // Calculate RPM for right encoder
     long deltaTimeRight = readTime - lastReadTimeRight;     
     long deltaRight = encoderRightReading - encoderRightLast;  
+
+    // Handle overflow for right encoder
+    if (deltaRight < -32000) {
+        deltaRight += 65536;
+    } else if (deltaRight > 32000) {
+        deltaRight -= 65536;
+    }
 
     // Update timing and reading variables every cycle
     lastReadTimeRight = readTime;

@@ -8,6 +8,7 @@ GlobalPlanner::GlobalPlanner()
 
 void GlobalPlanner::planPath(const Map& map, const Pose& start, const Pose& goal)
 {
+
     // Placeholder for path planning algorithm
     // For now, just add the start and goal as waypoints
     addWaypoint(start);

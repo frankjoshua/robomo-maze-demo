@@ -32,16 +32,16 @@ bool LocalPlanner::computeVelocity(const Pose& current_pose, const Pose& goal_po
         return true;
     }
 
-    Serial.print("Distance: ");
-    Serial.print(distance);
-    Serial.print(", Angle: ");
-    Serial.print(dtheta);
-    Serial.print(", Current Pose: ");
-    Serial.print(current_pose.x);
-    Serial.print(", ");
-    Serial.print(current_pose.y);
-    Serial.print(", ");
-    Serial.println(current_pose.theta);
+    // Serial.print("Distance: ");
+    // Serial.print(distance);
+    // Serial.print(", Angle: ");
+    // Serial.print(dtheta);
+    // Serial.print(", Current Pose: ");
+    // Serial.print(current_pose.x);
+    // Serial.print(", ");
+    // Serial.print(current_pose.y);
+    // Serial.print(", ");
+    // Serial.println(current_pose.theta);
 
     const double angle_threshold = 0.1; // adjust as needed
 
