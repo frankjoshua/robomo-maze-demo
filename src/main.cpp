@@ -8,6 +8,7 @@
 #include <Map.h>
 #include <Motor.h>
 #include <LocalPlanner.h>
+#include <GlobalPlanner.h>
 
 // Define constants in meters
 const float wheelDiameter_m = 0.032;  // 32mm in meters
@@ -29,7 +30,7 @@ const unsigned long LOOP_PERIOD_MS = 10;
 
 // Instantiate objects
 Motor motors;
-// Zumo32U4LCD lcd;
+Zumo32U4LCD lcd;
 Zumo32U4Encoders encoders;
 Kinematics kinematics(Kinematics::DIFFERENTIAL_DRIVE, 
                      motorMaxRPM, 
@@ -42,14 +43,18 @@ IMU robotIMU;
 Kinematics::velocities fusedVel;
 Kinematics::velocities imuVel;
 Kinematics::velocities encoderVel;
+Kinematics::velocities goalVel;
 LineSensor lineSensor;
 LineSensor::SensorValues lineValues;
 Motor::VelocityCommand motorGoalVel;
 Motor::VelocityCommand motorCurrentVel;
 Map mapInstance;
-LocalPlanner localPlanner(0.1,0.1);
+LocalPlanner localPlanner(0.2, 1.0, 0.025);
 LocalPlanner::Pose currentPose;
 LocalPlanner::Pose goalPose;
+GlobalPlanner globalPlanner;
+
+
 LocalPlanner::VelocityCommand localPlannerVel;
 long lastLCDUpdate = 0;
 
@@ -83,8 +88,22 @@ void callibrate(){
 void setup() {
     // motorGoalVel.linear_x = 0.1;
     // motorGoalVel.angular_z = 0;
-    goalPose.x = 0.05;
-    goalPose.y = 0.05;
+    goalPose.x = 0.0;
+    goalPose.y = 0.0;
+
+    float distance = 0.5;
+    globalPlanner.addWaypoint({distance, 0.0, 0});
+    globalPlanner.addWaypoint({distance, distance, 0});
+    globalPlanner.addWaypoint({0.0, distance, 0});
+    globalPlanner.addWaypoint({0.0, 0.0, 0});
+    globalPlanner.addWaypoint({distance, 0.0, 0});
+    globalPlanner.addWaypoint({distance, distance, 0});
+    globalPlanner.addWaypoint({0.0, distance, 0});
+    globalPlanner.addWaypoint({0.0, 0.0, 0});
+    globalPlanner.addWaypoint({distance, 0.0, 0});
+    globalPlanner.addWaypoint({distance, distance, 0});
+    globalPlanner.addWaypoint({0.0, distance, 0});
+    globalPlanner.addWaypoint({0.0, 0.0, 0});
     // Initialize the LCD
     // lcd.init();
     // lcd.clear();
@@ -134,7 +153,9 @@ void loop() {
     //     callibrate();
     // }
 
-    kinematics.fuseVelocities(0.98, encoderVel, encoderVel, fusedVel);
+    goalVel.linear_x = motorGoalVel.linear_x;
+    goalVel.angular_z = motorGoalVel.angular_z;
+    kinematics.fuseVelocities(0.0, encoderVel, goalVel, fusedVel);
     Odometry::Position pos = odometry.calculatePosition(fusedVel.linear_x, fusedVel.angular_z);
     motorCurrentVel.linear_x = fusedVel.linear_x;
     motorCurrentVel.angular_z = fusedVel.angular_z;
@@ -160,13 +181,31 @@ void loop() {
     currentPose.x = pos.x;
     currentPose.y = pos.y;
     currentPose.theta = pos.theta;
-    localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
+    bool atGoal = localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
+    if(atGoal){
+        bool moreWaypoints = globalPlanner.getNextWaypoint(goalPose);
+        if(!moreWaypoints){
+            Serial.println("Finished");
+            motors.stop();
+            while (1){
+            
+            }            
+        }
+    }
     motorGoalVel.linear_x = localPlannerVel.linear;
     motorGoalVel.angular_z = localPlannerVel.angular;
     
     motors.updateVelocities(motorCurrentVel, motorGoalVel);
     if(millis() - lastLCDUpdate > 100){
         lastLCDUpdate = millis();
+        // Print current position to lcd
+        lcd.clear();
+        lcd.gotoXY(0, 0);
+        lcd.print("X: ");
+        lcd.print(currentPose.x);
+        lcd.gotoXY(0, 1);
+        lcd.print("Y: ");
+        lcd.print(currentPose.y);
         
         // Serial.print("Motor current vel: ");
         // Serial.print(motorCurrentVel.linear_x);

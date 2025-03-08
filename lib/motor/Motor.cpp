@@ -57,3 +57,7 @@ void Motor::updateVelocities(const VelocityCommand& current, const VelocityComma
     // Serial.print(", Right Speed: ");
     // Serial.println(speeds.right);
 }
+
+void Motor::stop() {
+    motors.setSpeeds(0, 0);
+}

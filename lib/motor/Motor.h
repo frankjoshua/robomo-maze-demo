@@ -19,6 +19,8 @@ public:
 
     Motor();
     void init();
+
+    void stop();
     
     // Update motor speeds based on current and desired velocities
     void updateVelocities(const VelocityCommand& current, const VelocityCommand& desired);
@@ -32,6 +34,7 @@ private:
     
     // Helper functions
     void calculateMotorSpeeds(float linearOutput, float angularOutput, MotorSpeeds& speeds);
+
 };
 
 #endif // MOTOR_H
