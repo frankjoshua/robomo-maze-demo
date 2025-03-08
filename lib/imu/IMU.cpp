@@ -130,11 +130,11 @@ void IMU::readSensorData() {
     float pitch = madgwickFilter.getPitch(); // Already converted to degrees 
     float yaw = madgwickFilter.getYaw();     // Already converted to degrees
 
-    // Serial.print("Roll: ");
+    // Serial.print(F("Roll: "));
     // Serial.print(roll);
-    // Serial.print(", Pitch: ");
+    // Serial.print(F(", Pitch: "));
     // Serial.print(pitch);
-    // Serial.print(", Yaw: ");
+    // Serial.print(F(", Yaw: "));
     // Serial.println(yaw);
 }
 

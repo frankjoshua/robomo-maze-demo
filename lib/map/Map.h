@@ -9,7 +9,7 @@ private:
     
 public:
     // Constructor/Destructor
-    Map();
+    Map(unsigned char* grid, int width, int height);
     ~Map();
     
     // Initialize map with given dimensions

@@ -1,7 +1,7 @@
 #include "Map.h"
 #include <Arduino.h>
 
-Map::Map() : grid(nullptr), width(0), height(0) {
+Map::Map(unsigned char* grid, int width, int height) : grid(grid), width(width), height(height) {
     // Initialize with null grid and zero dimensions
 }
 
@@ -11,10 +11,10 @@ Map::~Map() {
 }
 
 void Map::init(int w, int h) {
-    // Clean up previous allocation if any
-    if (grid) {
-        delete[] grid;
-    }
+    // // Clean up previous allocation if any
+    // if (grid) {
+    //     delete[] grid;
+    // }
     
     width = w;
     height = h;
@@ -24,7 +24,7 @@ void Map::init(int w, int h) {
     int numBytes = (width * height + 7) / 8;
     
     // Allocate memory for the grid using bytes (unsigned char)
-    grid = new unsigned char[numBytes];
+    // grid = new unsigned char[numBytes];
     
     // Initialize all bits to 0
     for (int i = 0; i < numBytes; i++) {

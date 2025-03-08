@@ -19,11 +19,11 @@ const float wheelsXDistance_m = 0.098;  // 98mm in meters
 const float wheelsYDistance_m = 0.098;  // 98mm in meters
 const long ticksPerRevolution = 900;  // 12 counts per revolution * 75:1 gear ratio
 
-const int mapWidth = 50;
-const int mapHeight = 50;
-const int startX = mapWidth / 2;
-const int startY = mapHeight / 2;
-const float cellSize = 0.04;
+const int mapWidth = 45;
+const int mapHeight = 45;
+const int startX = 0;
+const int startY = 0;
+const float cellSize = 0.02;
 
 // Define loop period (100Hz = 10ms)
 const unsigned long LOOP_PERIOD_MS = 10;
@@ -48,7 +48,8 @@ LineSensor lineSensor;
 LineSensor::SensorValues lineValues;
 Motor::VelocityCommand motorGoalVel;
 Motor::VelocityCommand motorCurrentVel;
-Map mapInstance;
+unsigned char grid[(mapWidth * mapHeight) / 8];
+Map mapInstance(grid, mapWidth, mapHeight);
 LocalPlanner localPlanner(0.2, 1.5, 0.025);
 LocalPlanner::Pose currentPose;
 LocalPlanner::Pose goalPose;
@@ -94,10 +95,10 @@ void setup() {
     goalPose.y = 0.0;
 
     float distance = 0.5;
-    globalPlanner.addWaypoint({distance, 0.0, 0});
-    globalPlanner.addWaypoint({distance, distance, 0});
-    globalPlanner.addWaypoint({0.0, distance, 0});
-    globalPlanner.addWaypoint({0.0, 0.0, 0});
+    // globalPlanner.addWaypoint({distance, 0.0, 0});
+    // globalPlanner.addWaypoint({distance, distance, 0});
+    // globalPlanner.addWaypoint({0.0, distance, 0});
+    // globalPlanner.addWaypoint({0.0, 0.0, 0});
     // globalPlanner.addWaypoint({distance, 0.0, 0});
     // globalPlanner.addWaypoint({distance, distance, 0});
     // globalPlanner.addWaypoint({0.0, distance, 0});
@@ -107,6 +108,11 @@ void setup() {
     // globalPlanner.addWaypoint({0.0, distance, 0});
     // globalPlanner.addWaypoint({0.0, 0.0, 0});
     // globalPlanner.planPath(mapInstance, {0.0, 0.0, 0}, {distance, 0.0, 0});
+    // // Add waypoints to create a grid pattern
+    for (int i = 0; i < mapWidth; i++) {
+        globalPlanner.addWaypoint({(double) i * cellSize, mapHeight * cellSize, 0});
+        globalPlanner.addWaypoint({(double) 0, 0, 0});
+    }
 
     // Initialize the LCD
     lcd.init();
