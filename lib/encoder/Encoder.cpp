@@ -36,9 +36,9 @@ void Encoder::readEncoders(Encoder::EncoderData &encoderData) {
     long deltaLeft = encoderLeftReading - encoderLeftLast;  // Calculate change in counts
 
     // Handle overflow for left encoder
-    if (deltaLeft < -32000) {
+    if (deltaLeft < -32768) {
         deltaLeft += 65536;
-    } else if (deltaLeft > 32000) {
+    } else if (deltaLeft > 32767) {
         deltaLeft -= 65536;
     }
 
@@ -55,9 +55,9 @@ void Encoder::readEncoders(Encoder::EncoderData &encoderData) {
     long deltaRight = encoderRightReading - encoderRightLast;  
 
     // Handle overflow for right encoder
-    if (deltaRight < -32000) {
+    if (deltaRight < -32768) {
         deltaRight += 65536;
-    } else if (deltaRight > 32000) {
+    } else if (deltaRight > 32767) {
         deltaRight -= 65536;
     }
 
