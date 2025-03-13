@@ -57,6 +57,12 @@ void IMU::calibrateAccel() {
         sum.x += imuWrapper.a.x;
         sum.y += imuWrapper.a.y;
         sum.z += imuWrapper.a.z;
+        Serial.print("Accel: ");
+        Serial.print(imuWrapper.a.x);
+        Serial.print(", ");
+        Serial.print(imuWrapper.a.y);
+        Serial.print(", ");
+        Serial.println(imuWrapper.a.z);
         delay(10);
     }
     accelOffset.x = sum.x / samples;

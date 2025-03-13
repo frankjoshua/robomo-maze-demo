@@ -30,7 +30,7 @@ const unsigned long LOOP_PERIOD_MS = 10;
 
 // Instantiate objects
 Motor motors;
-Zumo32U4LCD lcd;
+// Zumo32U4LCD lcd;
 Zumo32U4Encoders encoders;
 Kinematics kinematics(Kinematics::DIFFERENTIAL_DRIVE, 
                      motorMaxRPM, 
@@ -87,6 +87,14 @@ void callibrate(){
 }
 
 void setup() {
+    bool a = true;
+    while (a)
+    {
+        if(buttonA.getSingleDebouncedPress()){
+            a = false;
+        }
+    }
+    
     Serial.begin(115200);
     Serial.println("Starting...");
     // motorGoalVel.linear_x = 0.1;
@@ -109,13 +117,13 @@ void setup() {
     // globalPlanner.addWaypoint({0.0, 0.0, 0});
     // globalPlanner.planPath(mapInstance, {0.0, 0.0, 0}, {distance, 0.0, 0});
     // // Add waypoints to create a grid pattern
-    for (int i = 0; i < mapWidth; i++) {
-        globalPlanner.addWaypoint({(double) i * cellSize, mapHeight * cellSize, 0});
-        globalPlanner.addWaypoint({(double) 0, 0, 0});
-    }
+    // for (int i = 0; i < mapWidth; i++) {
+    //     globalPlanner.addWaypoint({(double) i * cellSize, mapHeight * cellSize, 0});
+    //     globalPlanner.addWaypoint({(double) 0, 0, 0});
+    // }
 
     // Initialize the LCD
-    lcd.init();
+    // lcd.init();
     // lcd.clear();
     // lcd.print(F("Hello"));
     // lcd.gotoXY(0, 1);
@@ -128,7 +136,7 @@ void setup() {
         Serial.println("IMU Failed");
         while(1);
     }
-    // callibrate();
+    callibrate();
     lineSensor.init();
     lineSensor.calibrate();
     mapInstance.init(mapWidth, mapHeight);
@@ -239,13 +247,13 @@ void loop() {
     if(millis() - lastLCDUpdate > 100){
         lastLCDUpdate = millis();
         // Print current position to lcd
-        lcd.clear();
-        lcd.gotoXY(0, 0);
-        lcd.print("X: ");
-        lcd.print(currentPose.x);
-        lcd.gotoXY(0, 1);
-        lcd.print("Y: ");
-        lcd.print(currentPose.y);
+        // lcd.clear();
+        // lcd.gotoXY(0, 0);
+        // lcd.print("X: ");
+        // lcd.print(currentPose.x);
+        // lcd.gotoXY(0, 1);
+        // lcd.print("Y: ");
+        // lcd.print(currentPose.y);
         
         // Serial.print("Motor current vel: ");
         // Serial.print(motorCurrentVel.linear_x);
