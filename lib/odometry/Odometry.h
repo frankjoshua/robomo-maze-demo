@@ -16,6 +16,7 @@ public:
   ~Odometry();
 
   Position calculatePosition(double xLinearVelocity, double zAngularVelocity);
+  Position calculatePositionWithYaw(double xLinearVelocity, double yaw);
 
   void reset();
 

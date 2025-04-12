@@ -5,7 +5,7 @@ Madgwick madgwickFilter;
 
 Zumo32U4IMU imuWrapper; // Use the global IMU object
 
-const int HZ = 25;
+const int HZ = 20;
 const unsigned long interval_us = 1000000 / HZ;
 
 IMU::IMU() {
@@ -164,17 +164,27 @@ void IMU::readSensorData() {
 
     
     // Get Euler angles in degrees
-    float roll = madgwickFilter.getRoll();   // Already converted to degrees
-    float pitch = madgwickFilter.getPitch(); // Already converted to degrees 
-    float yaw = madgwickFilter.getYaw();     // Already converted to degrees
+    roll = madgwickFilter.getRoll();   // Already converted to degrees
+    pitch = madgwickFilter.getPitch(); // Already converted to degrees 
+    yaw = (madgwickFilter.getYaw() + 180.0);     // Already converted to degrees
+    if(yaw > 360) {
+        yaw -= 360.0;
+    }
 
     // Serial.print(F("Roll: "));
     // Serial.print(roll);
     // Serial.print(F(", Pitch: "));
     // Serial.print(pitch);
-    Serial.print(F(", Yaw: "));
-    Serial.println(yaw);
+    // Serial.print(F(", Yaw: "));
+    // Serial.println(yaw);
 }
+
+void IMU::getRollPitchYaw(float* r, float* p, float* y) {
+    *r = roll;
+    *p = pitch;
+    *y = yaw;
+}
+
 
 
 

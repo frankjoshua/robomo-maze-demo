@@ -19,8 +19,8 @@ const float wheelsXDistance_m = 0.098;  // 98mm in meters
 const float wheelsYDistance_m = 0.098;  // 98mm in meters
 const long ticksPerRevolution = 900;  // 12 counts per revolution * 75:1 gear ratio
 
-const int mapWidth = 20;
-const int mapHeight = 20;
+const int mapWidth = 45;
+const int mapHeight = 45;
 const int startX = 0;
 const int startY = 0;
 const float cellSize = 0.02;
@@ -87,36 +87,41 @@ void callibrate(){
 }
 
 void setup() {
+    delay(1000);
+    Serial.begin(115200);
+    
     bool a = true;
     while (a)
     {
+        Serial.println(F("Move the robot in a figure 8 to calibrate the IMU"));
+    Serial.println(F("Then set on flat surface and press A to calibrate"));
         if(buttonA.getSingleDebouncedPress()){
             a = false;
         }
+        delay(100);
     }
     
-    Serial.begin(115200);
-    Serial.println("Starting...");
+    
     // motorGoalVel.linear_x = 0.1;
     // motorGoalVel.angular_z = 0;
     goalPose.x = 0.0;
     goalPose.y = 0.0;
 
-    float distance = 0.5;
-    // globalPlanner.addWaypoint({distance, 0.0, 0});
-    // globalPlanner.addWaypoint({distance, distance, 0});
-    // globalPlanner.addWaypoint({0.0, distance, 0});
-    // globalPlanner.addWaypoint({0.0, 0.0, 0});
-    // globalPlanner.addWaypoint({distance, 0.0, 0});
-    // globalPlanner.addWaypoint({distance, distance, 0});
-    // globalPlanner.addWaypoint({0.0, distance, 0});
-    // globalPlanner.addWaypoint({0.0, 0.0, 0});
-    // globalPlanner.addWaypoint({distance, 0.0, 0});
-    // globalPlanner.addWaypoint({distance, distance, 0});
-    // globalPlanner.addWaypoint({0.0, distance, 0});
-    // globalPlanner.addWaypoint({0.0, 0.0, 0});
+    float distance = 0.25;
+    globalPlanner.addWaypoint({distance, 0.0, 0});
+    globalPlanner.addWaypoint({distance, distance, 0});
+    globalPlanner.addWaypoint({0.0, distance, 0});
+    globalPlanner.addWaypoint({0.0, 0.0, 0});
+    globalPlanner.addWaypoint({distance, 0.0, 0});
+    globalPlanner.addWaypoint({distance, distance, 0});
+    globalPlanner.addWaypoint({0.0, distance, 0});
+    globalPlanner.addWaypoint({0.0, 0.0, 0});
+    globalPlanner.addWaypoint({distance, 0.0, 0});
+    globalPlanner.addWaypoint({distance, distance, 0});
+    globalPlanner.addWaypoint({0.0, distance, 0});
+    globalPlanner.addWaypoint({0.0, 0.0, 0});
     // globalPlanner.planPath(mapInstance, {0.0, 0.0, 0}, {distance, 0.0, 0});
-    // // Add waypoints to create a grid pattern
+    // Add waypoints to create a grid pattern
     // for (int i = 0; i < mapWidth; i++) {
     //     globalPlanner.addWaypoint({(double) i * cellSize, mapHeight * cellSize, 0});
     //     globalPlanner.addWaypoint({(double) 0, 0, 0});
@@ -185,7 +190,21 @@ void loop() {
     goalVel.linear_x = motorGoalVel.linear_x;
     goalVel.angular_z = motorGoalVel.angular_z;
     kinematics.fuseVelocities(0.0, encoderVel, goalVel, fusedVel);
-    Odometry::Position pos = odometry.calculatePosition(fusedVel.linear_x, fusedVel.angular_z);
+    // Odometry::Position pos = odometry.calculatePosition(fusedVel.linear_x, fusedVel.angular_z);
+    float yaw = 0;
+    robotIMU.getRollPitchYaw(0, 0, &yaw);
+    // convert yaw to radians
+    yaw = yaw * (PI / 180.0);
+    // convert yaw to right hand rule
+    yaw = -yaw;
+    // Serial.print("Yaw: ");
+    // Serial.println(yaw);
+
+    Odometry::Position pos = odometry.calculatePositionWithYaw(fusedVel.linear_x, yaw);
+    Serial.print("Pos: ");
+    Serial.print(pos.x);
+    Serial.print(", ");
+    Serial.println(pos.y);
     motorCurrentVel.linear_x = fusedVel.linear_x;
     motorCurrentVel.angular_z = fusedVel.angular_z;
     // Serial.print("Motor Vel: ");
@@ -210,8 +229,11 @@ void loop() {
     currentPose.x = pos.x;
     currentPose.y = pos.y;
     currentPose.theta = pos.theta;
-    bool atGoal = false;// localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
+    bool atGoal = localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
     if(atGoal){
+        Serial.println("At goal");
+        motors.stop();
+        delay(1000);
                 // Serial print the map
                 // Serial.println("Map:");
                 // for (int y = 0; y < 200; y++) {

@@ -40,6 +40,29 @@ Odometry::Position Odometry::calculatePosition(double xLinearVelocity, double zA
     return position;
 }
 
+Odometry::Position Odometry::calculatePositionWithYaw(double xLinearVelocity, double yaw)
+{
+    double millisSinceLastUpdate = millis() - lastUpdate;
+    lastUpdate = millis();
+    double deltaTime = millisSinceLastUpdate / 1000.0;
+
+    double dx = xLinearVelocity;
+    
+    // Update position
+    position.x += cos(position.theta) * dx * deltaTime;
+    position.y += sin(position.theta) * dx * deltaTime;
+    position.theta = yaw;
+    
+    // Normalize angle between -PI and PI
+    if (position.theta > PI)
+        position.theta -= 2 * PI;
+    else if (position.theta < -PI)
+        position.theta += 2 * PI;
+
+    return position;
+}
+
+
 void Odometry::reset()
 {
     position.theta = 0.0;

@@ -29,6 +29,9 @@ public:
     void readSensorData();
 
 private:
+    float roll;
+    float pitch;
+    float yaw;
     Madgwick madgwickFilter;
 
     // Calibration offsets
