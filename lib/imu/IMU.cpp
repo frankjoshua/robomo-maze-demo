@@ -5,7 +5,7 @@ Madgwick madgwickFilter;
 
 Zumo32U4IMU imuWrapper; // Use the global IMU object
 
-const int HZ = 100;
+const int HZ = 25;
 const unsigned long interval_us = 1000000 / HZ;
 
 IMU::IMU() {
@@ -57,12 +57,12 @@ void IMU::calibrateAccel() {
         sum.x += imuWrapper.a.x;
         sum.y += imuWrapper.a.y;
         sum.z += imuWrapper.a.z;
-        Serial.print("Accel: ");
-        Serial.print(imuWrapper.a.x);
-        Serial.print(", ");
-        Serial.print(imuWrapper.a.y);
-        Serial.print(", ");
-        Serial.println(imuWrapper.a.z);
+        // Serial.print(F("Accel: "));
+        // Serial.print(imuWrapper.a.x);
+        // Serial.print(F(", "));
+        // Serial.print(imuWrapper.a.y);
+        // Serial.print(F(", "));
+        // Serial.println(imuWrapper.a.z);
         delay(10);
     }
     accelOffset.x = sum.x / samples;
@@ -94,6 +94,15 @@ void IMU::calibrateMag() {
 }
 
 static unsigned long lastTime = 0;
+
+// float getYawDeg(float mx, float my) {
+//     float yaw = atan2(-my, mx);  // Note the negative sign on my
+//     float yaw_deg = yaw * (180.0f / M_PI);
+//     if (yaw_deg < 0) {
+//         yaw_deg += 360.0f;
+//     }
+//     return yaw_deg;
+// }
 
 void IMU::readSensorData() {
 
@@ -128,8 +137,31 @@ void IMU::readSensorData() {
     float my = my_raw * (4.0f / 32768.0f);
     float mz = mz_raw * (4.0f / 32768.0f);
 
+    // Serial.print(F(", Yaw: "));
+
+    // Serial.println(getYawDeg(mx, my));
+
+    // Accelerometer: X = forward, Y = right, Z = down
+    float ax_ned =  ax;
+    float ay_ned = -ay;  // flip Y
+    float az_ned = -az;  // flip Z
+
+    // Gyroscope: X = forward, Y = right, Z = down
+    float gx_ned =  gx;
+    float gy_ned = -gy;  // flip Y
+    float gz_ned = -gz;  // flip Z
+
+    // Magnetometer: X = forward, Y = right, Z = down
+    float mx_ned =  mx;
+    float my_ned = -my;  // flip Y
+    float mz_ned = -mz;  // flip Z
+
+    // ------------------------------
     // Update Madgwick filter
-    madgwickFilter.update(gx, gy, gz, ax, ay, az, mx, my, mz);
+    // ------------------------------
+
+    madgwickFilter.update(gx_ned, gy_ned, gz_ned, ax_ned, ay_ned, az_ned, 0, 0, 0);
+
     
     // Get Euler angles in degrees
     float roll = madgwickFilter.getRoll();   // Already converted to degrees
@@ -140,7 +172,9 @@ void IMU::readSensorData() {
     // Serial.print(roll);
     // Serial.print(F(", Pitch: "));
     // Serial.print(pitch);
-    // Serial.print(F(", Yaw: "));
-    // Serial.println(yaw);
+    Serial.print(F(", Yaw: "));
+    Serial.println(yaw);
 }
+
+
 

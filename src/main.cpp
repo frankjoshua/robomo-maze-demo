@@ -19,8 +19,8 @@ const float wheelsXDistance_m = 0.098;  // 98mm in meters
 const float wheelsYDistance_m = 0.098;  // 98mm in meters
 const long ticksPerRevolution = 900;  // 12 counts per revolution * 75:1 gear ratio
 
-const int mapWidth = 45;
-const int mapHeight = 45;
+const int mapWidth = 20;
+const int mapHeight = 20;
 const int startX = 0;
 const int startY = 0;
 const float cellSize = 0.02;
@@ -133,7 +133,7 @@ void setup() {
     if (!robotIMU.init()) {
         // lcd.clear();
         // lcd.print(F("IMU Failed"));
-        Serial.println("IMU Failed");
+        // Serial.println("IMU Failed");
         while(1);
     }
     callibrate();
@@ -210,7 +210,7 @@ void loop() {
     currentPose.x = pos.x;
     currentPose.y = pos.y;
     currentPose.theta = pos.theta;
-    bool atGoal = localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
+    bool atGoal = false;// localPlanner.computeVelocity(currentPose, goalPose, localPlannerVel);
     if(atGoal){
                 // Serial print the map
                 // Serial.println("Map:");
@@ -222,19 +222,19 @@ void loop() {
                 // }
         bool moreWaypoints = globalPlanner.getNextWaypoint(goalPose);
         if(!moreWaypoints){
-            Serial.println("Finished");
+            // Serial.println("Finished");
             motors.stop();
             while (1)
             {
                 if(buttonA.getSingleDebouncedPress()){
         
-                Serial.println("Map:");
-                for (int y = 0; y < mapHeight; y++) {
-                    for (int x = 0; x < mapWidth; x++) {
-                        Serial.print(mapInstance.get(x, y));
-                    }
-                    Serial.println();
-                }
+                // Serial.println("Map:");
+                // for (int y = 0; y < mapHeight; y++) {
+                //     for (int x = 0; x < mapWidth; x++) {
+                //         Serial.print(mapInstance.get(x, y));
+                //     }
+                //     Serial.println();
+                // }
             }
                 delay(10);
             }        

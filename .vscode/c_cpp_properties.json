@@ -31,6 +31,7 @@
                 "/home/josh/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "/home/josh/.platformio/packages/framework-arduino-avr/variants/leonardo",
                 "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/PololuMenu/src",
+                "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/Unity/src",
                 "/home/josh/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                 "/home/josh/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "/home/josh/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
@@ -63,6 +64,7 @@
                     "/home/josh/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "/home/josh/.platformio/packages/framework-arduino-avr/variants/leonardo",
                     "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/PololuMenu/src",
+                    "/home/josh/development/workspace/robomo-maze-demo/.pio/libdeps/a-star32U4/Unity/src",
                     "/home/josh/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                     "/home/josh/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                     "/home/josh/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
@@ -71,7 +73,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60117",
+                "PLATFORMIO=60118",
                 "ARDUINO_AVR_A_STAR_32U4",
                 "DISABLE_DEBUG",
                 "F_CPU=16000000L",
