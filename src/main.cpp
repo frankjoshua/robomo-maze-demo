@@ -10,6 +10,9 @@
 #include <LocalPlanner.h>
 #include <GlobalPlanner.h>
 
+// Uncomment this to turn on LCD function
+// #define LCD_ON
+
 // Define constants in meters
 const float wheelDiameter_m = 0.032;  // 32mm in meters
 const double wheelRadius_m = wheelDiameter_m / 2.0;
@@ -30,7 +33,9 @@ const unsigned long LOOP_PERIOD_MS = 10;
 
 // Instantiate objects
 Motor motors;
-// Zumo32U4LCD lcd;
+#ifdef LCD_ON
+Zumo32U4LCD lcd;
+#endif
 Zumo32U4Encoders encoders;
 Kinematics kinematics(Kinematics::DIFFERENTIAL_DRIVE, 
                      motorMaxRPM, 
@@ -67,21 +72,25 @@ void callibrate(){
     // motors.setSpeeds(0, 0);
     
     // Display calibration message
-    // lcd.clear();
-    // lcd.print(F("Cal..."));
-    // lcd.gotoXY(0, 1);
-    // lcd.print(F("IMU..."));
-    
+#ifdef LCD_ON
+    lcd.clear();
+    lcd.print(F("Cal..."));
+    lcd.gotoXY(0, 1);
+    lcd.print(F("IMU..."));
+#endif
+  
     // Run the calibration routine
     robotIMU.calibrateAccel();
     robotIMU.calibrateGyro();
     robotIMU.calibrateMag();
     
     // Confirmation message
-    // lcd.clear();
-    // lcd.print(F("Calibration"));
-    // lcd.gotoXY(0, 1);
-    // lcd.print(F("Complete!"));
+#ifdef LCD_ON
+    lcd.clear();
+    lcd.print(F("Calibration"));
+    lcd.gotoXY(0, 1);
+    lcd.print(F("Complete!"));
+#endif
     
     delay(1000); // Show message for 1 second
 }
@@ -123,16 +132,19 @@ void setup() {
     // }
 
     // Initialize the LCD
-    // lcd.init();
-    // lcd.clear();
-    // lcd.print(F("Hello"));
-    // lcd.gotoXY(0, 1);
-    // lcd.print(F("Ready"));
-    // delay(1000);
-
+#ifdef LCD_ON
+    lcd.init();
+    lcd.clear();
+    lcd.print(F("Hello"));
+    lcd.gotoXY(0, 1);
+    lcd.print(F("Ready"));
+    delay(1000);
+#endif
     if (!robotIMU.init()) {
-        // lcd.clear();
-        // lcd.print(F("IMU Failed"));
+#ifdef LCD_ON
+        lcd.clear();
+        lcd.print(F("IMU Failed"));
+#endif
         Serial.println("IMU Failed");
         while(1);
     }
@@ -247,13 +259,15 @@ void loop() {
     if(millis() - lastLCDUpdate > 100){
         lastLCDUpdate = millis();
         // Print current position to lcd
-        // lcd.clear();
-        // lcd.gotoXY(0, 0);
-        // lcd.print("X: ");
-        // lcd.print(currentPose.x);
-        // lcd.gotoXY(0, 1);
-        // lcd.print("Y: ");
-        // lcd.print(currentPose.y);
+#ifdef LCD_ON
+      lcd.clear();
+        lcd.gotoXY(0, 0);
+        lcd.print("X: ");
+        lcd.print(currentPose.x);
+        lcd.gotoXY(0, 1);
+        lcd.print("Y: ");
+        lcd.print(currentPose.y);
+#endif
         
         // Serial.print("Motor current vel: ");
         // Serial.print(motorCurrentVel.linear_x);
